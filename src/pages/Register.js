@@ -5,7 +5,7 @@ import { SignIn } from '../apis';
 import MainLayout from '../layout/MainLayout';
 import AuthContext from '../context/AuthContext';
 
-const Login = () => {
+const Register = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
@@ -16,10 +16,10 @@ const Login = () => {
         if (auth.token) {
             history.replace('/places');
         }
-    });
+    })
 
     const onClick = () => {
-        auth.signIn(username, password, () => history.replace("/places"));
+        auth.register(username, password, () => history.replace("/places"));
     };
     return (
         <MainLayout>
@@ -28,7 +28,7 @@ const Login = () => {
                 <Card>
                     <Card.Body>
                         <h3 className="text-center">
-                            <b>LOGIN</b>
+                            <b>REGISTER</b>
                         </h3>
                         <Form.Group>
                             <Form.Label>Username</Form.Label>
@@ -37,9 +37,11 @@ const Login = () => {
                                 placeholder="Enter Username"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}>
-                            </Form.Control>   
-                        </Form.Group>
-                        <Form.Group>
+                            </Form.Control>
+                            
+                           
+                            </Form.Group>
+                            <Form.Group>
                             <Form.Label>Password</Form.Label>    
                             <Form.Control
                                 type="password"
@@ -47,10 +49,10 @@ const Login = () => {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}>
                             </Form.Control>
-                        </Form.Group>
+                            </Form.Group>
                             <Button variant="standard" block onClick={onClick} disabled={auth.loading}> {auth.loading ? (
                                 <Spinner variant="standard" as="span" animation="border" size = "sm" role ="status" aria-hidden="true" />
-                            ) : ("Sign In")}</Button>
+                            ) : ("Register")}</Button>
                     </Card.Body>
                 </Card>
                 </Col>
@@ -59,4 +61,4 @@ const Login = () => {
     )
 }
 
-export default Login;
+export default Register;

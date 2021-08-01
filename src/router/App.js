@@ -8,6 +8,8 @@ import Places from '../pages/Places';
 
 import { AuthProvider } from '../context/AuthContext';
 import PrivateRoute from './PrivateRoute';
+import Register from '../pages/Register';
+import Place from '../pages/Place';
 
 function App() {
     return (
@@ -20,9 +22,16 @@ function App() {
                 <Route exact path='/login'>
                     <Login/>
                 </Route>
+                <Route exact path='/register'>
+                    <Register/>
+                </Route>
+                <PrivateRoute exact path='/places/:id'>
+                    <Place/>
+                </PrivateRoute>
                 <PrivateRoute exact path='/places'>
                     <Places/>
                 </PrivateRoute>
+               
             </Switch>
         </BrowserRouter>
         <ToastContainer>

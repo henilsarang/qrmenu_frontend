@@ -1,17 +1,21 @@
 import { IoMdArrowBack } from 'react-icons/io';
-import { Row, Col, Button } from 'react-bootstrap';
+import { AiOutlineDelete,AiOutlineQrcode } from 'react-icons/ai';
+import {RiFileList3Line } from 'react-icons/ri';
+import {FiSettings} from 'react-icons/fi'
+import { Row, Col, Button, Modal } from 'react-bootstrap';
 import { useParams, useHistory } from 'react-router-dom';
 import { useEffect, useContext, useState } from 'react';
-import { fetchPlace } from '../apis';
+import { fetchPlace, removeCategory,removeMenuItem,removePlace, updatePlace } from '../apis';
 import AuthContext from '../context/AuthContext';
 import MainLayout from '../layout/MainLayout';
 import styled from 'styled-components';
 import MenuItemForm from '../container/MenuItemForm';
 import MenuItem from '../components/MenuItems';
+import QRCodeModal from '../components/QRCodeModal';
 
 const Panel = styled.div`
     background-color:white;
-    padding: 30px;
+    padding: 25px;
     border-radius:5px;
     box-shadow: 1px  1px 10px rgba(0,0,0,0.5);
 
@@ -20,6 +24,15 @@ const Panel = styled.div`
 
 const Place = () => {
     const [place, setPlace] = useState({});
+    const [menuItemFormShow, setMenuItemFormShow] = useState(false);
+
+    const showModal = () => setMenuItemFormShow(true);
+    const hideModal = () => setMenuItemFormShow(false);
+
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [qrcode, setQrCode] = useState(false);
+    const showQRModal = () => setQrCode(true);
+    const hideQRModal = () => setQrCode(false);
     const auth = useContext(AuthContext);
     const params = useParams(); 
     const history = useHistory();
@@ -30,8 +43,37 @@ const Place = () => {
         if (json) {
             setPlace(json);
         }
-        console.log(place.name);
     };
+
+    const onRemovePlace = () => {
+        const c = window.confirm("Are you sure ?");
+        if (c) {
+            removePlace(params.id, auth.token).then(onBack);
+        }
+    }
+    const onRemoveCategory = (id) => {
+        const c = window.confirm("Are you sure ?");
+        if (c) {
+            removeCategory(id, auth.token).then(onFetchPlace);
+        }
+    }
+    const onRemoveMenuItem = (id) => {
+        const c = window.confirm("Are you sure ?");
+        if (c) {
+            removeMenuItem(id, auth.token).then(onFetchPlace);
+        }
+    }
+
+    const onUpdatePlace = (tables) => {
+        updatePlace(place.id, { number_of_tables: tables }, auth.token).then(
+            (json) => {
+                if (json) {
+                    setPlace(json);
+                }
+            }
+        )
+    }
+
 
     useEffect(() => {
         onFetchPlace();
@@ -43,12 +85,27 @@ const Place = () => {
                 <Col lg={12}>
             
                     <div className="mb-4">
-                        <div className="d-flex align-items-center">
+                        <div className="d-flex justify-content-between align-items-center mb-4">
                             <Button variant="link" onClick={onBack}>
                                 <IoMdArrowBack size={25} color="black"/>
                             </Button>
                             <h3 className="mb-0 ml-2 mr-2">{place.name}</h3>
+                            <Button variant="link" onClick={onRemovePlace}><AiOutlineDelete size={25} color="red "/></Button>
                         </div>
+                        <Button variant="link" onClick={() => {
+                            showQRModal();
+                            console.log(qrcode);
+                        }}>
+                            <AiOutlineQrcode size={25}/>
+                        </Button>
+                        <Button variant="link" href={`/places/${params.id}/orders`}>
+                            <RiFileList3Line size={25}/>
+                        </Button>
+                        <Button variant="link" href={`/places/${params.id}/settings`}>
+                            <FiSettings size={25}/>
+                        </Button>
+                        
+
                     </div>
                 </Col>
                 <Col md={4}>
@@ -59,12 +116,23 @@ const Place = () => {
                 <Col md={8}>
                     {place?.categories?.map((category) => (
                         <div key={category.id} className="mb-5">
-                            <h4 className="mb-0 mr-2 mb-4">
-                                <b>{category.name}</b>
-                            </h4>
+                            <div className="d-flex align-items-center mb-4">
+                                <h4 className="mb-0 mr-2">
+                                    <b>{category.name}</b>
+                                </h4>
+                                <Button variant="link" onClick={() => onRemoveCategory(category.id)}>
+                                    <AiOutlineDelete size={25} color="red"/>
+                                </Button>
+                            </div>
+                            
                             
                             {category.menu_items.map((item) => (
-                                <MenuItem key={item.id} item={item}/>
+                                <MenuItem key={item.id} item={item} onEdit={() => {
+                                    setSelectedItem(item);
+                                    showModal()
+                                }}
+                                onRemove={()=> onRemoveMenuItem(item.id)}   
+                                />
                             ))
                             }
                         </div>
@@ -72,6 +140,17 @@ const Place = () => {
                 </Col>
 
             </Row>
+            <Modal show={menuItemFormShow} onHide={ hideModal}  centerted>
+                <Modal.Body>
+                    <h4 className="text-center">Menu Item</h4>
+                    <MenuItemForm place={place} onDone={() => {
+                        onFetchPlace();
+                        hideModal()
+                    }} item={selectedItem} />
+                </Modal.Body>
+                
+            </Modal>
+            <QRCodeModal show={qrcode} onHide={hideQRModal} place={place} onUpdatePlace={onUpdatePlace} centerted/>
         </MainLayout>
     )
 }
